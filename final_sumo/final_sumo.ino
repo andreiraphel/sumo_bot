@@ -52,36 +52,41 @@ int counter = 0;
 void loop() {
   if(millis() > 5000)
   {
-    int rightSensorValue = analogRead(rightSens);
-    int centerSensorValue = analogRead(centerSens);
-    int leftSensorValue = analogRead(leftSens);
-    int threshold = 500;
+    sumo();
+  }
+}
 
-    if(rightSensorValue < threshold && leftSensorValue < threshold)
-    {   
-      // Line detected
-      backward();
-      delay(100);
+void sumo()
+{
+  int rightSensorValue = analogRead(rightSens);
+  int centerSensorValue = analogRead(centerSens);
+  int leftSensorValue = analogRead(leftSens);
+  int threshold = 500;
+
+  if(rightSensorValue < threshold && leftSensorValue < threshold)
+  {   
+    // Line detected
+    backward();
+    delay(100);
+  }
+  else
+  {
+    // No line
+    int object_distance = getDistance();
+    if(object_distance <= min_distance)
+    {
+      turnRight();
+      counter++;
+      if(counter >= 2)
+      {
+        forward();
+      }
     }
     else
     {
-      // No line
-      int object_distance = getDistance();
-      if(object_distance <= min_distance)
-      {
-        turnRight();
-        counter++;
-        if(counter >= 2)
-        {
-          forward();
-        }
-      }
-      else
-      {
-        counter = 0;
-        forward();
-        turnLeft();
-      }
+      counter = 0;
+      forward();
+      turnLeft();
     }
   }
 }
