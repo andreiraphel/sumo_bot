@@ -1,0 +1,5 @@
+{
+    "sketch": "final_sumo_copy_20240422080733.ino",
+    "configuration": "cpu=atmega328",
+    "board": "arduino:avr:nano"
+}
