@@ -5,7 +5,8 @@ Servo myServo;
 const int speed = 70;
 const int speedVariable = 20;
 
-const int min_distance = 50;
+const int min_distance_sumo = 30;
+const int min_distance_search = 15;
 
 // Line tracker sensor
 const int rightSens = A0;
@@ -13,6 +14,7 @@ const int centerSens = A1;
 const int leftSens = A2;
 
 // H-bridge
+
 // Right motor
 const int in1 = 3;
 const int in2 = 2;
@@ -27,6 +29,8 @@ const int enb = 5;
 const int echoPin = 6;
 const int trigPin = 7;
 
+const int dipSwitchPin = 4;
+bool isSumoMode = false;
 
 void setup()
 {
@@ -44,6 +48,9 @@ void setup()
 
   pinMode(rightSens, INPUT);
   myServo.attach(9);
+
+  pinMode(dipSwitchPin, INPUT_PULLUP);
+
   Serial.begin(9600);
 }
 
@@ -52,7 +59,20 @@ int counter = 0;
 void loop() {
   if(millis() > 5000)
   {
-    sumo();
+    if (digitalRead(dipSwitchPin) == LOW) {
+    // Dip switch is on, set sumo mode
+      isSumoMode = true;
+    } else {
+      // Dip switch is off, set search mode
+      isSumoMode = false;
+    }
+
+    // Perform corresponding behavior based on the dip switch state
+    if (isSumoMode) {
+      sumo();
+    } else {
+      search();
+    }
   }
 }
 
@@ -73,7 +93,7 @@ void sumo()
   {
     // No line
     int object_distance = getDistance();
-    if(object_distance <= min_distance)
+    if(object_distance <= min_distance_sumo)
     {
       turnRight();
       counter++;
@@ -87,21 +107,26 @@ void sumo()
       counter = 0;
       forward();
       turnLeft();
+      delay(300);
     }
   }
 }
 
-void search(int d)
+void search()
 {
+  int distance = getDistance();
   int list[3];
-  if (d <= min_distance)
+  forward();
+  if (distance <= min_distance_search)
   {
+    stopMotors();
+    delay(200);
     myServo.write(0);   
-    delay(1000);
+    delay(200);
     list[0] = getDistance();
     delay(100);
     myServo.write(180);
-    delay(1000);
+    delay(200);
     list[1] = getDistance();
     delay(100);
     myServo.write(90);
@@ -110,19 +135,14 @@ void search(int d)
     delay(100);
     
 
-    if(list[0] >= min_distance && list[0] > list[1])
+    if(list[0] >= min_distance_search && list[0] > list[1])
     {
       turnRight();
       delay(500);
     }
-    else if(list[1] >= min_distance && list[1] > list[0])
+    else if(list[1] >= min_distance_search && list[1] > list[0])
     {
       turnLeft();
-      delay(500);
-    }
-    else if(list[2] >= min_distance && list[2] > list[0] && list[2] > list[1])
-    {
-      forward();
       delay(500);
     }
   }
